@@ -838,7 +838,7 @@ async function sendMessage(){
       const res = await fetch(`${SERVER}/v1/chat`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
-        body: JSON.stringify({message: text})
+        body: JSON.stringify({message: text, mood: currentMood})
       });
       if(res.ok){
         const data = await res.json();

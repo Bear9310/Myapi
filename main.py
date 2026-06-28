@@ -52,6 +52,7 @@ def startup():
 class ChatRequest(BaseModel):
     message: str
     history: list = []
+    mood: str = "professional"
 
 class CreateKeyRequest(BaseModel):
     key_name: str
@@ -81,7 +82,7 @@ def chat(request: ChatRequest, authorization: str = Header(None)):
     if not is_valid:
         raise HTTPException(status_code=403, detail=info)
     history = get_chat_history(api_key)
-    reply = get_response(request.message, history)
+    reply = get_response(request.message, history, request.mood)
     save_chat_history(api_key, request.message, reply)
     try:
         increment_request_count(api_key, "/v1/chat", "success")
