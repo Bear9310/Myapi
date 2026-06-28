@@ -4,3 +4,4 @@ requests
 python-dotenv
 pydantic
 beautifulsoup4
+groq

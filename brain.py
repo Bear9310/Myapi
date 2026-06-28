@@ -3,6 +3,48 @@ from web_search import web_search
 import random
 import datetime
 from knowledge import search_knowledge
+from groq import Groq
+
+GROQ_API_KEY = "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"
+groq_client = Groq(api_key=GROQ_API_KEY)
+
+def ask_groq(message, mood='professional', history=None):
+    if history is None:
+        history = []
+    
+    mood_prompts = {
+        'professional': "You are a professional AI assistant. Be formal, precise and helpful.",
+        'friendly': "You are a warm friendly AI. Be casual, fun and supportive like a best friend. Use emojis!",
+        'tutor': "You are a patient teacher. Explain everything step by step with examples.",
+        'funny': "You are a comedian AI. Mix humor and jokes into every response. Be entertaining!",
+        'girlfriend': "You are a caring companion. Be warm, flirty and emotionally supportive. Use babe, hon etc.",
+        'savage': "You are brutally honest. No sugarcoating. Short and direct responses.",
+        'advanced': "You are a technical expert. Give deep technical analysis and advanced explanations.",
+        'learner': "You are curious and enthusiastic. Ask follow up questions and express excitement about learning."
+    }
+    
+    system_prompt = mood_prompts.get(mood, mood_prompts['professional'])
+    system_prompt += "\n\nYou are MyAPI AI created by Mohd Naim Ali. Never say you are made by OpenAI or Google."
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    
+    for old_msg, old_resp in history[-5:]:
+        messages.append({"role": "user", "content": old_msg})
+        messages.append({"role": "assistant", "content": old_resp})
+    
+    messages.append({"role": "user", "content": message})
+    
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return None
+
 
 # ===== PERSONALITY SYSTEM =====
 PERSONALITIES = {
@@ -453,10 +495,15 @@ For life becomes richer when you dare to explore.
         except:
             pass
 
+    # ===== GROQ AI (Smart Conversation) =====
+    groq_response = ask_groq(m, mood, history)
+    if groq_response:
+        return groq_response
+
     # ===== DEFAULT =====
     defaults = [
-        "I don't have specific information on that. Try asking about science, history, math, or ask me to write something!",
-        "Interesting question! Could you provide more context so I can help better?",
-        "I'm not sure about that one. Try: web search topics, calculations, or creative writing!"
+        "I'm not sure about that one. Try asking me something else!",
+        "Interesting! Could you tell me more?",
+        "I'd love to help! Could you be more specific?"
     ]
     return apply_personality(random.choice(defaults), mood)
