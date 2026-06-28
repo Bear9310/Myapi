@@ -31,6 +31,18 @@ def init_db():
         )
     ''')
 
+    # Create default guest key if not exists
+    from keygen import hash_key
+    guest_key = "myapi-guestkey2024defaultaccess"
+    hashed = hash_key(guest_key)
+    cursor.execute('''
+        INSERT OR IGNORE INTO api_keys 
+        (key_name, hashed_key, created_at, daily_limit)
+        VALUES (?, ?, ?, ?)
+    ''', ("guest-key", hashed, "2024-01-01", 99999))
+    conn.commit()
+    conn.close()
+
     # New memory table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS chat_history (
