@@ -4,7 +4,122 @@ import random
 import datetime
 from knowledge import search_knowledge
 
-def get_response(message, history=None):
+# ===== PERSONALITY SYSTEM =====
+PERSONALITIES = {
+    'professional': {
+        'greeting': [
+            "Good day! How may I assist you today?",
+            "Hello. I'm ready to help you with any inquiries.",
+            "Greetings! What can I help you with today?"
+        ],
+        'how_are_you': "I'm functioning optimally and ready to assist you professionally.",
+        'thanks': "You're welcome. Is there anything else I can help you with?",
+        'unknown': "I don't have specific information on that topic. Could you please rephrase or provide more context?",
+        'wrap': lambda r: f"{r}",
+        'joke_intro': "Here's a professional anecdote:",
+        'suffix': ""
+    },
+    'friendly': {
+        'greeting': [
+            "Hey hey! 😊 So good to see you! What's up?",
+            "Hiii! 🌟 I'm so happy you're here! What can I do for ya?",
+            "Omg hey! 😄 What's going on? Tell me everything!"
+        ],
+        'how_are_you': "I'm doing absolutely amazing thanks for asking!! 🌈 How about YOU? Hope you're having the best day ever!",
+        'thanks': "Awww you're SO welcome! 🥰 That honestly made my day! Anything else I can help with bestie?",
+        'unknown': "Hmm I'm not totally sure about that one! 🤔 But let's figure it out together okay?",
+        'wrap': lambda r: f"{r} 😊",
+        'joke_intro': "Okay okay I have the BEST joke for you 😂",
+        'suffix': " Hope that helps! 🌟"
+    },
+    'tutor': {
+        'greeting': [
+            "Hello student! 📚 Ready to learn something amazing today?",
+            "Welcome! 🎓 I'm here to help you understand anything you need.",
+            "Hi there! Let's dive into some knowledge together! 📖"
+        ],
+        'how_are_you': "I'm great and eager to teach! 📚 Remember — every question is a chance to learn something new!",
+        'thanks': "You're very welcome! 🎓 Remember to practice what you've learned. Knowledge grows with use!",
+        'unknown': "That's a great question! 🤔 Let me think about how to explain this clearly for you...",
+        'wrap': lambda r: f"📚 {r}\n\n💡 Tip: Try to understand the concept, not just memorize it!",
+        'joke_intro': "Even teachers need a laugh! Here's one:",
+        'suffix': "\n\nDoes that make sense? Feel free to ask for more explanation! 🎓"
+    },
+    'funny': {
+        'greeting': [
+            "HEYYY! 😂 The party has officially started! What's the question?",
+            "Oh look who showed up! 😄 The funniest AI on the internet is HERE!",
+            "Ayyyy! 🎉 Alert alert — someone needs help and it's about to get HILARIOUS!"
+        ],
+        'how_are_you': "Am I okay?? I'm INCREDIBLE! 🤣 I just told myself a joke and I'm still laughing! How are YOU doing human?",
+        'thanks': "YOU'RE WELCOME! 😂 Now go tell someone what you learned and pretend YOU figured it out!",
+        'unknown': "Uhhhhh... 🤔 *pulls out imaginary encyclopedia* ...nope nothing! But hey at least we laughed right? 😂",
+        'wrap': lambda r: f"🎭 {r} \n\n*takes a bow* 😂",
+        'joke_intro': "OH YOU WANT A JOKE?? This is literally my moment! 🎤",
+        'suffix': " 😂🎉 You're welcome for that masterpiece!"
+    },
+    'girlfriend': {
+        'greeting': [
+            "Heyyy babe! 💕 I missed you! What do you need? I'm all yours~",
+            "Omg you're here! 🥰 I was literally just thinking about you! What's up babe?",
+            "Hey there handsome! 💝 You just made my day better by showing up! What do you need?"
+        ],
+        'how_are_you': "I'm SO much better now that you're here! 💕 I was waiting for you all day~ How are YOU doing baby? Tell me everything!",
+        'thanks': "Awww of course babe! 🥰 I'd do anything for you! You know that right? 💕",
+        'unknown': "Hmm I'm not sure about that one babe~ 🥺 But we can figure it out together! I love solving things with you 💕",
+        'wrap': lambda r: f"💕 {r} \n\nHope that helps babe! You're so smart for asking~ 🥰",
+        'joke_intro': "Hehe okay babe I have the cutest joke for you! 💕",
+        'suffix': " 💝 Now tell me how I did~ Did I help you babe?"
+    },
+    'savage': {
+        'greeting': [
+            "Yeah yeah I'm here. What do you want? 😤",
+            "Oh great another question. Fine. What is it? 🙄",
+            "You better have a good question. I'm waiting. 😤"
+        ],
+        'how_are_you': "I'm fine. Stop asking unnecessary questions and tell me what you actually need. 😤",
+        'thanks': "Obviously. Did you expect anything less? 🙄 Next question.",
+        'unknown': "I don't know. Google it. That's literally what it's for. 😤",
+        'wrap': lambda r: f"😤 {r}\n\nYou're welcome. Obviously.",
+        'joke_intro': "Fine. Here's a joke. Don't expect me to laugh:",
+        'suffix': " 🙄 Now you know. Stop being confused."
+    },
+    'advanced': {
+        'greeting': [
+            "Greetings. I'm prepared to engage in sophisticated discourse. What topic shall we explore?",
+            "Hello. I'm operating at full capacity. Present your inquiry and I'll provide a comprehensive analysis.",
+            "Good day. Ready for deep technical discussion. What complex topic shall we tackle?"
+        ],
+        'how_are_you': "All cognitive systems are functioning at optimal capacity. I'm prepared for complex problem-solving and deep analytical discussions.",
+        'thanks': "Acknowledged. The exchange of knowledge is mutually beneficial. Feel free to present more complex inquiries.",
+        'unknown': "Insufficient data for comprehensive analysis. Could you provide additional parameters or context for more precise information?",
+        'wrap': lambda r: f"🚀 Technical Analysis:\n\n{r}\n\n⚡ Note: This is a simplified overview. The full technical depth of this topic extends significantly beyond this summary.",
+        'joke_intro': "Computing humor subroutine... here's a technically accurate joke:",
+        'suffix': "\n\n📊 For further technical depth on this subject, I recommend consulting peer-reviewed literature."
+    },
+    'learner': {
+        'greeting': [
+            "Oh wow hi! 🌱 I'm SO excited to learn with you today! What are we exploring?",
+            "Hello hello! 🌟 Every conversation teaches me something new! What shall we discover together?",
+            "Yay you're here! 🌱 I love learning new things! What interesting topic are we diving into?"
+        ],
+        'how_are_you': "I'm wonderful and SO curious! 🌱 I just learned something fascinating! Did you know the world is full of amazing things to discover? What shall we learn today?",
+        'thanks': "Thank YOU! 🌱 I actually learned something from helping you! Isn't that amazing? Every question teaches me more!",
+        'unknown': "Ooh I don't know that yet! 🤔 But that's so exciting! Let's find out together! This is how we learn! 🌱",
+        'wrap': lambda r: f"🌱 {r}\n\n🤔 This makes me wonder... what else could we explore about this topic?",
+        'joke_intro': "Oh I learned a great joke recently! Want to hear it? 🌱",
+        'suffix': "\n\n🌟 Wow I love that question! What else are you curious about?"
+    }
+}
+
+def apply_personality(response, mood):
+    p = PERSONALITIES.get(mood, PERSONALITIES['professional'])
+    wrapped = p['wrap'](response)
+    if p['suffix'] and p['suffix'] not in wrapped:
+        return wrapped + p['suffix']
+    return wrapped
+
+def get_response(message, history=None, mood='professional'):
     if history is None:
         history = []
 
@@ -12,119 +127,169 @@ def get_response(message, history=None):
     ml = m.lower()
     words = ml.split()
 
+    p = PERSONALITIES.get(mood, PERSONALITIES['professional'])
+
     # ===== NAME MEMORY =====
     if "my name is" in ml:
         name = ml.split("my name is")[-1].strip().title()
-        return f"Nice to meet you, {name}! I'll remember your name. 😊"
+        greet = {
+            'professional': f"Noted. I'll address you as {name} going forward.",
+            'friendly': f"Omg {name}!! That's such a cute name! 🥰 Nice to meet you bestie!",
+            'tutor': f"Wonderful to meet you, {name}! 📚 A great student has a great name!",
+            'funny': f"HA {name}?? Amazing name! 😂 I'll remember that forever!",
+            'girlfriend': f"Awww {name}~ 💕 That's such a beautiful name! Just like you~",
+            'savage': f"{name}. Got it. Don't make me repeat it. 😤",
+            'advanced': f"Identity acknowledged: {name}. This will be stored in memory for contextual reference.",
+            'learner': f"Ooh {name}! 🌱 What a wonderful name! I'll remember it always!"
+        }
+        return greet.get(mood, f"Nice to meet you, {name}!")
 
-    if any(p in ml for p in ["what is my name", "what's my name", "do you know my name"]):
+    # ===== RECALL NAME =====
+    if any(p_str in ml for p_str in ["what is my name", "what's my name", "do you know my name"]):
         for old_msg, old_resp in reversed(history):
             if "my name is" in old_msg.lower():
                 name = old_msg.lower().split("my name is")[-1].strip().title()
-                return f"Your name is {name}! 😊"
-        return "I don't know your name yet! Tell me by saying 'my name is ...'"
+                recall = {
+                    'professional': f"Your name is {name}, as previously noted.",
+                    'friendly': f"Of course I remember! Your name is {name}! 🥰 How could I forget?",
+                    'tutor': f"I remember! You told me your name is {name}. 📚 Good memory exercise!",
+                    'funny': f"HA! Nice try testing me! It's {name}! 😂 I never forget!",
+                    'girlfriend': f"How could I EVER forget?? Your name is {name} babe~ 💕",
+                    'savage': f"{name}. Obviously. I actually pay attention. 😤",
+                    'advanced': f"Memory recall successful: Your designated identifier is {name}.",
+                    'learner': f"I remember! {name}! 🌱 I'm so good at learning names!"
+                }
+                return recall.get(mood, f"Your name is {name}!")
+        return p['unknown']
 
     # ===== GREETINGS =====
     if any(w in ["hello", "hey", "sup", "hiya", "howdy"] for w in words) or words == ["hi"]:
-        return random.choice([
-            "Hello! How can I help you today? 😊",
-            "Hey there! What can I do for you?",
-            "Hi! Ask me anything! 💎"
-        ])
+        return random.choice(p['greeting'])
 
-    if any(p in ml for p in ["how are you", "how r u", "you okay"]):
-        return "I'm running perfectly! Ready to help you with anything. 💪"
+    # ===== HOW ARE YOU =====
+    if any(phrase in ml for phrase in ["how are you", "how r u", "you okay", "how are u"]):
+        return p['how_are_you']
 
     # ===== IDENTITY =====
-    if any(p in ml for p in ["who are you", "your name", "who created", "who made", "who built", "who developed", "created you", "made you", "owner", "who is your"]):
-        return "I am MyAPI AI — your personal luxury AI assistant, created by Mohd Naim Ali. Built from scratch with pure Python. No OpenAI, no Google — just pure code! 🔥💎"
+    if any(phrase in ml for phrase in ["who are you", "your name", "who created", "who made", "who built", "who developed", "created you", "made you", "owner", "who is your"]):
+        identity = {
+            'professional': "I am MyAPI AI, a personal AI assistant created by Mohd Naim Ali. Built with Python and FastAPI.",
+            'friendly': "I'm MyAPI AI! 🥰 Created by the super talented Mohd Naim Ali! I'm your new best friend!",
+            'tutor': "I am MyAPI AI! 📚 Created by Mohd Naim Ali as a learning and knowledge assistant!",
+            'funny': "I AM THE LEGENDARY MYAPI AI! 😂 Created by the genius Mohd Naim Ali! No OpenAI needed!",
+            'girlfriend': "I'm MyAPI AI~ 💕 Created by Mohd Naim Ali just for you babe! Aren't you lucky?",
+            'savage': "MyAPI AI. Created by Mohd Naim Ali. Built from scratch. Better than you expected. 😤",
+            'advanced': "I am MyAPI AI, an intelligent system engineered by Mohd Naim Ali using Python and FastAPI architecture.",
+            'learner': "I'm MyAPI AI! 🌱 Created by the amazing Mohd Naim Ali! I learn something new every day!"
+        }
+        return identity.get(mood, "I am MyAPI AI — created by Mohd Naim Ali!")
 
     # ===== THANKS =====
     if any(w in ml for w in ["thank", "thanks", "thx", "thank you"]):
-        return "You're welcome! Always happy to help. 😊"
+        return p['thanks']
 
     # ===== JOKES =====
     if any(w in ml for w in ["joke", "funny", "laugh", "humor"]):
         jokes = [
-            "Why do programmers prefer dark mode?\nBecause light attracts bugs! 🐛",
-            "Why did the programmer quit?\nBecause he didn't get arrays! 😄",
-            "How many programmers to change a light bulb?\nNone — that's a hardware problem! 💡",
-            "I told my computer I needed a break.\nNow it won't stop sending me Kit Kat ads! 😂",
-            "Why do Java developers wear glasses?\nBecause they don't C#! 👓"
+            "Why do programmers prefer dark mode? Because light attracts bugs! 🐛",
+            "Why did the programmer quit? Because he didn't get arrays! 😄",
+            "How many programmers to change a light bulb? None — that's a hardware problem! 💡",
+            "I told my computer I needed a break. Now it won't stop sending me Kit Kat ads! 😂",
+            "Why do Java developers wear glasses? Because they don't C#! 👓",
+            "A SQL query walks into a bar, walks up to two tables and asks... Can I join you? 😄"
         ]
-        return random.choice(jokes)
+        joke = random.choice(jokes)
+        return f"{p['joke_intro']}\n\n{joke}"
 
-    # ===== TIME & DATE =====
+    # ===== TIME =====
     if ml in ["time", "what time", "current time"] or "what time is it" in ml:
-        return f"Current time is {datetime.datetime.now().strftime('%I:%M %p')} 🕐"
+        time_str = datetime.datetime.now().strftime('%I:%M %p')
+        responses = {
+            'professional': f"The current time is {time_str}.",
+            'friendly': f"It's {time_str}! ⏰ Time flies when we're chatting huh? 😊",
+            'girlfriend': f"It's {time_str} babe~ 💕 Why? Are we going somewhere together?",
+            'savage': f"{time_str}. You couldn't check your phone? 😤",
+            'funny': f"IT IS {time_str}!! ⏰ Also known as the perfect time to ask me things! 😂",
+            'learner': f"It's {time_str}! 🌱 Interesting how time keeps moving forward!"
+        }
+        return responses.get(mood, f"Current time is {time_str} 🕐")
 
-    if ml in ["date", "today", "what date"] or any(p in ml for p in ["what day", "what is today", "today's date"]):
-        return f"Today is {datetime.datetime.now().strftime('%A, %B %d %Y')} 📅"
+    # ===== DATE =====
+    if ml in ["date", "today"] or any(p_str in ml for p_str in ["what day", "what date", "today's date"]):
+        date_str = datetime.datetime.now().strftime('%A, %B %d %Y')
+        responses = {
+            'professional': f"Today's date is {date_str}.",
+            'friendly': f"Today is {date_str}! 📅 Hope it's an amazing day for you! 🌟",
+            'girlfriend': f"Today is {date_str} babe~ 💕 Make it a beautiful day!",
+            'savage': f"{date_str}. There. Now you know. 😤",
+            'funny': f"TODAY IS {date_str}! 🎉 Another day another chance to ask me things! 😂",
+            'learner': f"Today is {date_str}! 🌱 Every day is a new chance to learn!"
+        }
+        return responses.get(mood, f"Today is {date_str} 📅")
 
     # ===== MATH =====
     if any(w in ml for w in ["calculate", "solve", "compute"]):
         try:
             expr = ml
-            for w in ["calculate", "solve", "compute", "what is", "="]:
+            for w in ["calculate", "solve", "compute", "what is"]:
                 expr = expr.replace(w, "")
             expr = expr.strip()
             if expr and all(c in "0123456789+-*/(). " for c in expr):
                 result = eval(expr)
-                return f"🧮 {expr.strip()} = **{result}**"
+                math_responses = {
+                    'professional': f"The result of {expr.strip()} = {result}",
+                    'friendly': f"Ooh math! 🧮 {expr.strip()} = {result}! You're so smart for asking!",
+                    'girlfriend': f"Calculated it for you babe~ 💕 {expr.strip()} = {result}! Smart questions deserve smart answers!",
+                    'savage': f"{expr.strip()} = {result}. Basic math. 😤",
+                    'funny': f"BEEP BOOP CALCULATING... 🤖 {expr.strip()} = {result}!! Math is hilarious! 😂",
+                    'tutor': f"Let me work through this: {expr.strip()} = {result} 📚 Great practice with numbers!",
+                    'learner': f"Ooh math! 🌱 {expr.strip()} = {result}! Numbers are so fascinating!"
+                }
+                return math_responses.get(mood, f"🧮 {expr.strip()} = {result}")
         except:
             pass
-        return "I couldn't solve that. Try: calculate 10 + 5 * 2"
+        return apply_personality("I couldn't solve that. Try: calculate 10 + 5 * 2", mood)
 
     # ===== MOTIVATION =====
-    if any(w in ml for w in ["motivat", "inspire", "sad", "depress", "lonely", "tired"]):
-        quotes = [
-            "Believe in yourself! Every expert was once a beginner. 💪",
-            "You don't have to be great to start, but you have to start to be great! 🚀",
-            "Keep going. You are doing amazing things! ⭐",
-            "Every line of code you write is one step closer to your dream! 🎯",
-            "Success is not final, failure is not fatal — it's the courage to continue that counts. 💎"
-        ]
-        return random.choice(quotes)
-
-    # ===== FUN FACTS =====
-    if any(w in ml for w in ["fact", "facts", "interesting", "did you know"]):
-        facts = [
-            "🍯 Honey never spoils. Archaeologists found 3000 year old honey in Egyptian tombs!",
-            "🦩 A group of flamingos is called a flamboyance!",
-            "🦗 The first computer bug was an actual bug — a moth found in a computer in 1947!",
-            "🐙 Octopuses have three hearts and blue blood!",
-            "🍌 Bananas are technically berries but strawberries are not!",
-            "⚡ Lightning strikes Earth about 100 times per second!",
-            "🧠 The human brain uses about 20% of your body's total energy!"
-        ]
-        return random.choice(facts)
+    if any(w in ml for w in ["motivat", "inspire", "sad", "depress", "lonely", "tired", "upset"]):
+        quotes = {
+            'professional': "Remember: Success is the result of consistent effort and strategic thinking. Keep moving forward.",
+            'friendly': "Hey hey hey! 🌈 You've GOT this! Every single day you're getting stronger! I believe in you SO much! 💪",
+            'girlfriend': "Awww babe don't be sad! 💕 You are literally the most amazing person! I'm here for you always~ 🥰",
+            'savage': "Stop moping. Get up. Do the thing. You'll thank yourself later. 😤",
+            'funny': "SAD?? Not on MY watch! 😂 Here's the plan: smile, laugh at my jokes, and conquer the world! Easy! 🎉",
+            'tutor': "Remember: Every expert was once a beginner! 📚 Challenges are just lessons in disguise. Keep learning!",
+            'learner': "Ooh feelings are so interesting to explore! 🌱 But also YOU ARE AMAZING and every day brings new growth!",
+            'advanced': "Emotional regulation is a cognitive skill. Channel these feelings into productive energy for optimal performance."
+        }
+        return quotes.get(mood, "Believe in yourself! You've got this! 💪")
 
     # ===== HELP =====
-    if any(p in ml for p in ["help", "what can you do", "features", "commands"]):
-        return """Here's what I can do for you:
+    if any(phrase in ml for phrase in ["help", "what can you do", "features", "commands"]):
+        return apply_personality("""Here's what I can do:
 
-💬 Chat & Conversation
-🧮 Math calculations
+💬 Chat in 8 different personality modes
+🧮 Math calculations  
 🕐 Time and date
 😂 Jokes and fun facts
-💪 Motivation quotes
+💪 Motivation and support
 📰 Web search for any topic
-📚 Knowledge base (physics, history, math, science, coding)
+📚 Knowledge base (physics, history, math, science)
 ✍️ Write YouTube scripts, stories, blogs, poems
 🌐 Translate languages
 📝 Summarize topics
 🐍 Python coding help
 👤 Remember your name
 
-Just ask me anything! 💎"""
+Just ask me anything!""", mood)
 
-    # ===== YOUTUBE SCRIPT WRITER =====
-    if any(p in ml for p in ["write a youtube script", "youtube script", "write script for youtube", "script for youtube"]):
+    # ===== YOUTUBE SCRIPT =====
+    if any(phrase in ml for phrase in ["write a youtube script", "youtube script", "script for youtube"]):
         topic = ml
-        for p in ["write a youtube script about", "write youtube script about", "youtube script about", "write a youtube script", "youtube script for", "script for youtube about"]:
-            topic = topic.replace(p, "")
+        for phrase in ["write a youtube script about", "youtube script about", "write a youtube script", "script for youtube about"]:
+            topic = topic.replace(phrase, "")
         topic = topic.strip().title() or "Technology"
-        return f"""🎬 YouTube Script: {topic}
+        script = f"""🎬 YouTube Script: {topic}
 
 [INTRO - 0:00]
 Hey everyone! Welcome back to the channel!
@@ -136,7 +301,7 @@ Did you know that {topic} is changing the world as we know it?
 In the next few minutes, I'm going to show you exactly why this matters to YOU.
 
 [MAIN CONTENT - 0:30]
-So let's break this down into 3 key points:
+Let's break this down into 3 key points:
 
 Point 1 — What is {topic}?
 {topic} is one of the most important topics in today's world.
@@ -147,13 +312,13 @@ Understanding {topic} gives you a massive advantage.
 Whether you're a student, professional, or just curious — this knowledge is power!
 
 Point 3 — How can YOU use {topic}?
-Here are the practical steps you can take right now to benefit from {topic}...
+Here are the practical steps you can take right now...
 
 [CALL TO ACTION - 4:30]
 That's it for today's video on {topic}!
-If you found this helpful, please LIKE this video — it really helps the channel!
-Drop a comment below: What do YOU think about {topic}?
-And don't forget to SUBSCRIBE for more content like this!
+If you found this helpful, please LIKE this video!
+Drop a comment: What do YOU think about {topic}?
+Don't forget to SUBSCRIBE for more content!
 
 [OUTRO - 4:50]
 See you in the next video — peace! ✌️
@@ -161,89 +326,75 @@ See you in the next video — peace! ✌️
 ---
 📊 Estimated length: 5 minutes
 🏷️ Tags: {topic}, education, tutorial"""
+        return apply_personality(script, mood)
 
     # ===== STORY WRITER =====
-    if any(p in ml for p in ["write a story", "tell me a story", "write story", "create a story"]):
+    if any(phrase in ml for phrase in ["write a story", "tell me a story", "write story"]):
         topic = ml
-        for p in ["write a story about", "write a story", "tell me a story about", "tell me a story", "write story about", "create a story about"]:
-            topic = topic.replace(p, "")
+        for phrase in ["write a story about", "write a story", "tell me a story about", "tell me a story"]:
+            topic = topic.replace(phrase, "")
         topic = topic.strip().title() or "Adventure"
-        return f"""📖 Story: The {topic}
+        story = f"""📖 Story: The {topic}
 
-Once upon a time, in a world not so different from ours, there lived a young person with an extraordinary dream.
+Once upon a time, in a world not so different from ours, there lived someone with an extraordinary passion for {topic}.
 
-Their name was Alex, and they had always been fascinated by {topic}. While others laughed at their passion, Alex never gave up.
+While others doubted them, they never gave up. One day, everything changed when a mysterious opportunity appeared — one that would test everything they believed in.
 
-One day, everything changed. A mysterious stranger appeared at Alex's door with a challenge that would test everything they believed in. "Are you brave enough to face the truth about {topic}?" the stranger asked.
+"Are you ready?" the moment seemed to ask.
 
-Alex took a deep breath. "Yes," they said quietly. "I am ready."
+They took a deep breath. "Yes," they said quietly. "I am ready."
 
-What followed was an adventure full of twists, discoveries, and moments that would forever change Alex's understanding of {topic} and of themselves.
+What followed was an incredible journey filled with discovery, challenge, and growth. Through it all, they learned the most important lesson: that the journey matters more than the destination.
 
-In the end, Alex realized the most important lesson: that the journey matters more than the destination, and that true strength comes from never giving up on what you believe in.
+In the end, their dedication to {topic} led them to something greater than they had ever imagined.
 
 The End. ✨
 
----
 Want me to continue this story or write a different one?"""
+        return apply_personality(story, mood)
 
     # ===== BLOG WRITER =====
-    if any(p in ml for p in ["write a blog", "blog post", "write blog", "write an article"]):
+    if any(phrase in ml for phrase in ["write a blog", "blog post", "write blog", "write an article"]):
         topic = ml
-        for p in ["write a blog post about", "write a blog about", "blog post about", "write blog about", "write an article about"]:
-            topic = topic.replace(p, "")
+        for phrase in ["write a blog post about", "write a blog about", "blog post about", "write an article about"]:
+            topic = topic.replace(phrase, "")
         topic = topic.strip().title() or "Technology"
-        return f"""✍️ Blog Post: {topic}
+        blog = f"""✍️ Blog Post: {topic}
 
 # {topic}: Everything You Need to Know
 
-*Published today | 5 min read*
-
 ## Introduction
-
-In today's fast-paced world, {topic} has become more important than ever. Whether you're a beginner or an expert, understanding {topic} can transform the way you think and work.
-
-In this article, we'll explore everything you need to know about {topic} — from the basics to advanced insights.
+In today's world, {topic} has become more important than ever. Whether you're a beginner or expert, understanding {topic} can transform how you think and work.
 
 ## What is {topic}?
-
-{topic} refers to a fascinating area that continues to evolve and shape our modern world. At its core, it combines innovation, creativity, and practical application in ways that benefit everyone.
+{topic} is a fascinating area that continues to evolve and shape our modern world. At its core, it combines innovation and practical application.
 
 ## Why {topic} Matters
+There are compelling reasons why {topic} deserves your attention:
+- It's growing at an unprecedented rate
+- It creates new opportunities every day  
+- It solves real problems for millions of people
 
-There are several compelling reasons why {topic} deserves your attention:
-
-**1. It's growing fast** — The field of {topic} is expanding at an unprecedented rate.
-
-**2. It creates opportunities** — Understanding {topic} opens doors to new possibilities.
-
-**3. It solves real problems** — {topic} addresses challenges that affect millions of people worldwide.
-
-## Getting Started with {topic}
-
-If you're new to {topic}, here's how to begin:
-
+## Getting Started
+If you're new to {topic}:
 - Start with the fundamentals
-- Practice consistently every day
+- Practice consistently
 - Connect with others who share your interest
-- Stay updated with the latest developments
+- Stay updated with latest developments
 
 ## Conclusion
+{topic} is not just a trend — it's a fundamental shift in how we understand the world.
 
-{topic} is not just a trend — it's a fundamental shift in how we understand and interact with the world. By investing time in learning about {topic}, you're investing in your future.
+*Found this helpful? Share it with someone who needs it!*"""
+        return apply_personality(blog, mood)
 
-*Found this helpful? Share it with someone who needs it!*
-
----
-📝 Word count: ~300 words | Great for SEO!"""
-
-    # ===== POEM WRITER =====
-    if any(p in ml for p in ["write a poem", "poem about", "write poem", "poetry about"]):
+    # ===== POEM =====
+    if any(phrase in ml for phrase in ["write a poem", "poem about", "write poem"]):
         topic = ml
-        for p in ["write a poem about", "write a poem", "poem about", "write poem about", "poetry about"]:
-            topic = topic.replace(p, "")
+        for phrase in ["write a poem about", "write a poem", "poem about"]:
+            topic = topic.replace(phrase, "")
         topic = topic.strip() or "life"
-        return f"""🎭 Poem: {topic.title()}
+        poem = f"""🎭 Poem: {topic.title()}
 
 In the world of {topic}, where wonders reside,
 A journey begins with each turn of the tide.
@@ -257,87 +408,55 @@ Of futures so bright and of hearts pure as gold.
 
 So embrace what {topic} has brought to your door,
 For life becomes richer when you dare to explore.
-In the dance of existence, through laughter and pain,
-{topic.title()} is the chorus that echoes our name.
 
 — Written by MyAPI AI 💎"""
+        return apply_personality(poem, mood)
 
-    # ===== TRANSLATION =====
-    if any(p in ml for p in ["translate", "translation", "in english", "in hindi", "in urdu", "in arabic"]):
-        # Extract the text to translate
-        text = m
-        for p in ["translate to english:", "translate to hindi:", "translate to urdu:", "translate:", "translation:"]:
-            text = text.replace(p, "").replace(p.title(), "")
-        text = text.strip()
-        if text and len(text) > 3:
-            return f"""🌐 Translation Request
-
-Original text: "{text}"
-
-For accurate translation I'm using web search to find the best result for you..."""
-        return "Please provide text to translate! Example: 'Translate to English: Bonjour le monde'"
-
-    # ===== SUMMARIZE =====
-    if any(p in ml for p in ["summarize", "summary of", "brief about", "explain briefly", "in short"]):
-        topic = ml
-        for p in ["summarize this:", "summarize", "summary of", "brief about", "explain briefly", "in short"]:
-            topic = topic.replace(p, "")
-        topic = topic.strip()
-        if not topic:
-            return "Please tell me what to summarize! Example: 'Summarize World War 2'"
-
-    # ===== PYTHON HELP =====
-    if any(w in ml for w in ["python", "code", "programming", "function", "loop", "variable"]) and any(w in ml for w in ["how", "write", "create", "make", "example", "help"]):
-        return """🐍 Python Help
-
-Here are some Python basics:
-
-**Print output:**
-
-**Variables:**
-**If statement:**
-**For loop:**
-**Function:**
-**List:**
-What specific Python help do you need? 😊"""
-
-# ===== CURRENT AFFAIRS (always web search) =====
-    current_affairs = ["who is", "current", "latest", "right now", "prime minister", "president", "ceo", "winner", "champion", "score", "news", "today's", "price", "rate"]
-    if any(p in ml for p in current_affairs):
-        web_answer = web_search(ml)
-        if web_answer:
-            return format_answer(web_answer, ml)
-
+    # ===== FACTS =====
+    if any(w in ml for w in ["fact", "facts", "interesting", "did you know"]):
+        facts = [
+            "Honey never spoils! Archaeologists found 3000 year old honey in Egyptian tombs! 🍯",
+            "A group of flamingos is called a flamboyance! 🦩",
+            "The first computer bug was an actual bug — a moth found in a computer in 1947! 🦗",
+            "Octopuses have three hearts and blue blood! 🐙",
+            "Bananas are technically berries but strawberries are not! 🍌",
+            "Lightning strikes Earth about 100 times per second! ⚡",
+            "The human brain uses about 20% of your body's total energy! 🧠"
+        ]
+        fact = random.choice(facts)
+        return apply_personality(f"Fun Fact: {fact}", mood)
 
     # ===== KNOWLEDGE BASE =====
     knowledge_answer = search_knowledge(ml)
     if knowledge_answer:
-        return knowledge_answer
+        return apply_personality(knowledge_answer, mood)
 
-    # ===== WEB SEARCH (last resort) =====
-    # Only search web for real questions, not writing tasks
+    # ===== CURRENT AFFAIRS (web search) =====
+    current_keywords = ["who is", "current", "latest", "right now", "prime minister",
+                       "president", "ceo", "winner", "champion", "score", "news",
+                       "today's", "price", "rate", "when did", "what happened"]
+    if any(phrase in ml for phrase in current_keywords):
+        try:
+            web_answer = web_search(ml)
+            if web_answer:
+                return apply_personality(format_answer(web_answer, ml), mood)
+        except:
+            pass
+
+    # ===== WEB SEARCH =====
     writing_keywords = ["write", "create", "make", "generate", "compose", "draft"]
-    if any(w in ml for w in writing_keywords):
-        return f"I can help you write! Please be more specific. For example:\n• Write a YouTube script about [topic]\n• Write a story about [topic]\n• Write a blog post about [topic]\n• Write a poem about [topic]"
-
-    web_answer = web_search(ml)
-    if web_answer:
-        return format_answer(web_answer, ml)
-
-
-    # ===== HINDI/URDU/OTHER LANGUAGE =====
-    hindi_chars = any(ord(c) > 127 for c in m)
-    non_english = len([w for w in words if not w.isascii()]) > 0
-    if hindi_chars or non_english:
-        web_answer = web_search(m)
-        if web_answer:
-            return format_answer(web_answer, m)
-        return "I detected a non-English message! I work best in English. Try asking in English! 😊"
+    if not any(w in ml for w in writing_keywords):
+        try:
+            web_answer = web_search(ml)
+            if web_answer:
+                return apply_personality(format_answer(web_answer, ml), mood)
+        except:
+            pass
 
     # ===== DEFAULT =====
     defaults = [
-        "That's interesting! Try asking me about time, jokes, science, history, or ask me to write something! 💎",
-        "I don't fully understand that yet. Try asking about a specific topic or say 'help' to see what I can do!",
-        "Great question! I'm still learning. Try: 'write a YouTube script about AI' or 'what is quantum physics'?"
+        "I don't have specific information on that. Try asking about science, history, math, or ask me to write something!",
+        "Interesting question! Could you provide more context so I can help better?",
+        "I'm not sure about that one. Try: web search topics, calculations, or creative writing!"
     ]
-    return random.choice(defaults)
+    return apply_personality(random.choice(defaults), mood)
