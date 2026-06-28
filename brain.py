@@ -5,10 +5,13 @@ import datetime
 from knowledge import search_knowledge
 from groq import Groq
 
-GROQ_API_KEY = "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"
-groq_client = Groq(api_key=GROQ_API_KEY)
+import os
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 def ask_groq(message, mood='professional', history=None):
+    if not groq_client:
+        return None
     if history is None:
         history = []
     
