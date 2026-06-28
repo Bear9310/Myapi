@@ -539,7 +539,7 @@ textarea::placeholder{color:var(--text3);}
         <button class="toggle" id="ghostToggle" onclick="toggleGhost()"></button>
       </div>
       <div class="setting-item">
-        <div><div class="setting-label">API Server URL</div><div class="setting-sub" id="serverUrl">http://localhost:8000</div></div>
+        <div><div class="setting-label">API Server URL</div><div class="setting-sub" id="serverUrl">https://myapi-djd0.onrender.com</div></div>
         <button class="copy-key-btn" style="width:auto;padding:6px 12px;margin:0;" onclick="changeServer()">Edit</button>
       </div>
       <div class="setting-item">
@@ -592,8 +592,8 @@ textarea::placeholder{color:var(--text3);}
 
 <script>
 // STATE
-let API_KEY = localStorage.getItem('myapi_key') || '';
-let SERVER = localStorage.getItem('myapi_server') || 'http://localhost:8000';
+let API_KEY = localStorage.getItem('myapi_key') || 'myapi-iZNodrWQhhsoxbVaMS3EHzgLipFfbglP1ecN5bC2kLjbJvlf';
+let SERVER = 'https://myapi-djd0.onrender.com';
 let chatHistory = JSON.parse(localStorage.getItem('myapi_history') || '[]');
 let msgCount = 0;
 let isGhost = false;
