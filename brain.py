@@ -487,21 +487,22 @@ For life becomes richer when you dare to explore.
                 return apply_personality(format_answer(web_answer, ml), mood)
         except:
             pass
-
-    # ===== WEB SEARCH =====
-    writing_keywords = ["write", "create", "make", "generate", "compose", "draft"]
-    if not any(w in ml for w in writing_keywords):
-        try:
-            web_answer = web_search(ml)
-            if web_answer:
-                return apply_personality(format_answer(web_answer, ml), mood)
-        except:
-            pass
-
     # ===== GROQ AI (Smart Conversation) =====
     groq_response = ask_groq(m, mood, history)
     if groq_response:
         return groq_response
+
+    # ===== WEB SEARCH =====
+#    writing_keywords = ["write", "create", "make", "generate", "compose", "draft"]
+ #   if not any(w in ml for w in writing_keywords):
+  #       try:
+   #         web_answer = web_search(ml)
+    #        if web_answer:
+     #           return apply_personality(format_answer(web_answer, ml), mood)
+      #  except:
+       #     pass
+
+    
 
     # ===== DEFAULT =====
     defaults = [
