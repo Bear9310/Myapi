@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MyAPI Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0d0d0f;--surface:#18181c;--surface2:#1e1e24;--border:#2a2a32;--accent:#7c6fff;--accent2:#a78bfa;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--text:#f0f0f5;--text2:#9090a8;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:380px;}
+.orb{width:64px;height:64px;background:linear-gradient(135deg,#7c6fff,#c084fc);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;}
+.login-card h1{text-align:center;font-size:22px;font-weight:700;margin-bottom:4px;}
+.login-card p{text-align:center;font-size:13px;color:var(--text2);margin-bottom:24px;}
+.form-group{margin-bottom:14px;}
+.form-group label{font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:500;}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;outline:none;}
+.form-input:focus{border-color:var(--accent);}
+.btn{background:linear-gradient(135deg,#7c6fff,#a78bfa);border:none;color:#fff;padding:13px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;width:100%;}
+.btn-sm{padding:7px 14px;font-size:12px;width:auto;border-radius:8px;}
+.btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);}
+.error-msg{color:var(--red);font-size:13px;text-align:center;margin-top:10px;display:none;}
+.dashboard{display:none;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.topbar-orb{width:34px;height:34px;background:linear-gradient(135deg,#7c6fff,#c084fc);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.topbar h1{font-size:15px;font-weight:700;}
+.topbar p{font-size:11px;color:var(--text2);}
+.logout-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;}
+.content{padding:20px;max-width:900px;margin:0 auto;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.stat-icon{font-size:22px;margin-bottom:6px;}
+.stat-value{font-size:24px;font-weight:700;margin-bottom:3px;}
+.stat-label{font-size:11px;color:var(--text2);}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:14px;font-weight:600;}
+.create-form{display:flex;gap:10px;flex-wrap:wrap;}
+.create-form .form-input{flex:1;min-width:130px;}
+.create-form .btn{width:auto;padding:12px 18px;}
+.key-result{background:var(--surface2);border:1px solid var(--green);border-radius:10px;padding:14px;margin-top:12px;display:none;}
+.key-result h4{font-size:12px;color:var(--green);margin-bottom:8px;}
+.key-value{font-family:monospace;font-size:12px;color:var(--accent2);word-break:break-all;background:var(--bg);padding:10px;border-radius:8px;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:11px;color:var(--text2);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;}
+td{padding:11px 10px;border-bottom:1px solid var(--border);font-size:13px;}
+tr:last-child td{border-bottom:none;}
+.badge{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-green{background:#22c55e22;color:var(--green);}
+.badge-red{background:#ef444422;color:var(--red);}
+.progress{background:var(--surface2);border-radius:99px;height:5px;width:70px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.progress-bar{height:100%;background:linear-gradient(90deg,#7c6fff,#a78bfa);border-radius:99px;}
+.action-btns{display:flex;gap:6px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.info-item{background:var(--surface2);border-radius:10px;padding:12px;}
+.info-label{font-size:11px;color:var(--text2);margin-bottom:5px;}
+.info-value{font-size:13px;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:99px;font-size:13px;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:600px){.content{padding:12px;}.stats-grid{grid-template-columns:repeat(2,1fr);}.create-form{flex-direction:column;}th:nth-child(4),td:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="orb">✦</div>
+    <h1>MyAPI Admin</h1>
+    <p>Sign in to manage your API</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input class="form-input" id="username" type="text" value="admin"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="password" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"/>
+    </div>
+    <button class="btn" onclick="login()">🔐 Sign In</button>
+    <div class="error-msg" id="errorMsg">Wrong username or password!</div>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-orb">✦</div>
+      <div>
+        <h1>MyAPI Admin Dashboard</h1>
+        <p>Manage your personal AI API</p>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+  </div>
+  <div class="content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🔑</div>
+        <div class="stat-value" id="totalKeys">0</div>
+        <div class="stat-label">Total Keys</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-value" id="totalRequests">0</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="activeKeys">0</div>
+        <div class="stat-label">Active Keys</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🟢</div>
+        <div class="stat-value">ON</div>
+        <div class="stat-label">Server Status</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">⚡ Create New API Key</div></div>
+      <div class="create-form">
+        <input class="form-input" id="newKeyName" placeholder="Key name" type="text"/>
+        <input class="form-input" id="newKeyLimit" placeholder="Daily limit" type="number" value="100" style="max-width:120px;"/>
+        <button class="btn" onclick="createKey()">＋ Generate</button>
+      </div>
+      <div class="key-result" id="keyResult">
+        <h4>✅ Key Created!</h4>
+        <div class="key-value" id="keyValue"></div>
+        <button class="btn btn-sm" style="margin-top:10px;" onclick="copyKey()">📋 Copy</button>
+        <p style="font-size:11px;color:var(--yellow);margin-top:8px;">⚠️ Save this key now!</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🔑 API Keys</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="resetCounts()">🔄 Reset</button>
+          <button class="btn btn-sm" onclick="loadKeys()">↻ Refresh</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Name</th><th>Status</th><th>Requests</th><th>Created</th><th>Action</th></tr></thead>
+          <tbody id="keysBody"><tr><td colspan="5" style="color:var(--text2);">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">⚙️ System Info</div></div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">SERVER</div><div class="info-value" style="color:var(--accent2);">http://localhost:8000</div></div>
+        <div class="info-item"><div class="info-label">VERSION</div><div class="info-value">MyAPI v1.0.0</div></div>
+        <div class="info-item"><div class="info-label">DEVELOPER</div><div class="info-value">Mohd Naim Ali</div></div>
+        <div class="info-item"><div class="info-label">DATABASE</div><div class="info-value" style="color:var(--green);">SQLite ✅</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SERVER = 'http://localhost:8000';
+let auth = '';
+
+async function login() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  if(!u || !p){ showErr('Enter username and password!'); return; }
+  auth = 'Basic ' + btoa(u + ':' + p);
+  try {
+    const res = await fetch(`${SERVER}/admin/list-keys`, {headers:{'Authorization':auth}});
+    if(res.ok){
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadKeys();
+    } else {
+      showErr('Wrong username or password!');
+      auth = '';
+    }
+  } catch(e){ showErr('Cannot connect to server!'); }
+}
+
+function logout(){
+  auth = '';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('password').value = '';
+}
+
+function showErr(msg){
+  const e = document.getElementById('errorMsg');
+  e.textContent = msg; e.style.display = 'block';
+  setTimeout(()=>e.style.display='none', 3000);
+}
+
+async function loadKeys(){
+  try {
+    const res = await fetch(`${SERVER}/admin/list-keys`, {headers:{'Authorization':auth}});
+    const data = await res.json();
+    const keys = data.keys || [];
+    document.getElementById('totalKeys').textContent = keys.length;
+    document.getElementById('activeKeys').textContent = keys.filter(k=>k.is_active||k[3]).length;
+    document.getElementById('totalRequests').textContent = keys.reduce((a,k)=>a+(k.request_count||k[4]||0),0);
+    const tbody = document.getElementById('keysBody');
+    if(!keys.length){ tbody.innerHTML='<tr><td colspan="5" style="color:var(--text2);">No keys yet!</td></tr>'; return; }
+    tbody.innerHTML = keys.map((k,i)=>{
+      const name = k.key_name||k[1];
+      const active = k.is_active!==undefined?k.is_active:k[3];
+      const count = k.request_count||k[4]||0;
+      const limit = k.daily_limit||k[5]||100;
+      const created = (k.created_at||k[2]||'').split('T')[0];
+      const pct = Math.round((count/limit)*100);
+      return `<tr>
+        <td style="font-weight:500;">${name}</td>
+        <td><span class="badge ${active?'badge-green':'badge-red'}">${active?'Active':'Off'}</span></td>
+        <td><span>${count}/${limit}</span> <div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></td>
+        <td style="color:var(--text2);">${created}</td>
+        <td><button class="btn btn-sm btn-red" onclick="deleteKey(${k[0]||i+1})">🗑️</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e){ showToast('Failed to load keys!'); }
+}
+
+async function createKey(){
+  const name = document.getElementById('newKeyName').value.trim();
+  const limit = parseInt(document.getElementById('newKeyLimit').value)||100;
+  if(!name){ showToast('Enter a key name!'); return; }
+  try {
+    const res = await fetch(`${SERVER}/admin/create-key`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':auth},
+      body:JSON.stringify({key_name:name,daily_limit:limit})
+    });
+    const data = await res.json();
+    document.getElementById('keyValue').textContent = data.api_key;
+    document.getElementById('keyResult').style.display = 'block';
+    document.getElementById('newKeyName').value = '';
+    loadKeys();
+    showToast('Key created!');
+  } catch(e){ showToast('Failed!'); }
+}
+
+function copyKey(){
+  navigator.clipboard.writeText(document.getElementById('keyValue').textContent);
+  showToast('Copied!');
+}
+
+async function deleteKey(id){
+  if(!confirm('Delete this key?')) return;
+  try {
+    await fetch(`${SERVER}/admin/delete-key-by-id/${id}`,{method:'DELETE',headers:{'Authorization':auth}});
+    loadKeys(); showToast('Deleted!');
+  } catch(e){ showToast('Failed!'); }
+}
+
+async function resetCounts(){
+  if(!confirm('Reset all counts to 0?')) return;
+  try {
+    await fetch(`${SERVER}/admin/reset-counts`,{method:'POST',headers:{'Authorization':auth}});
+    loadKeys(); showToast('Reset done!');
+  } catch(e){ showToast('Failed!'); }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
