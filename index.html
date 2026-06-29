@@ -799,7 +799,7 @@ function showTyping(){
     </div>`;
   area.appendChild(row);
   area.scrollTop = area.scrollHeight;
-  if(role === 'ai') speakText(text, currentMood);
+  if(role === "ai") setTimeout(() => speakText(text, currentMood), 100);
 }
 function removeTyping(){ const t=document.getElementById('typingRow'); if(t) t.remove(); }
 
