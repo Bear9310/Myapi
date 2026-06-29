@@ -799,7 +799,7 @@ function showTyping(){
     </div>`;
   area.appendChild(row);
   area.scrollTop = area.scrollHeight;
-  if(role === "ai") setTimeout(() => speakText(text, currentMood), 100);
+  
 }
 function removeTyping(){ const t=document.getElementById('typingRow'); if(t) t.remove(); }
 
@@ -847,6 +847,7 @@ async function sendMessage(){
         removeTyping();
         const reply = (typeof data.response==='string'&&data.response.length>0) ? data.response : 'No response.';
         appendMsg('ai', reply, reply.includes('<'));
+        setTimeout(() => speakText(reply, currentMood), 100);
         return;
       }
     }
@@ -856,6 +857,7 @@ async function sendMessage(){
     removeTyping();
     const reply = localBrain(text);
     appendMsg('ai', reply, reply.includes('<'));
+    setTimeout(() => speakText(reply, currentMood), 100);
   }
 }
 
