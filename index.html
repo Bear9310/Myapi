@@ -964,7 +964,6 @@ function showConfirm(title,msg){ document.getElementById('confirmTitle').textCon
 function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); confirmCb=null; }
 function doConfirm(){ if(confirmCb) confirmCb(); closeConfirm(); }
 
-// TOAST
 // ===== VOICE SYSTEM =====
 const MOOD_VOICES = {
   professional: {rate: 0.9, pitch: 1.0, volume: 1.0},
@@ -992,7 +991,7 @@ function toggleVoice(){
 function speakText(text, mood){
   if(!voiceEnabled) return;
   if(speaking) speechSynthesis.cancel();
-  
+
   const clean = text
     .replace(/[🎭📚💎🔥💕💝😊😤🚀🌱😂👤✅❌⭐💪🎯📖✍️🌐📝🧮🕐📅🍯🦩🦗🐙🍌⚡🧠]/g, '')
     .replace(/\*\*/g, '')
@@ -1002,13 +1001,13 @@ function speakText(text, mood){
 
   const utterance = new SpeechSynthesisUtterance(clean);
   const config = MOOD_VOICES[mood] || MOOD_VOICES.professional;
-  
+
   utterance.rate = config.rate;
   utterance.pitch = config.pitch;
   utterance.volume = config.volume;
-  
+
   const voices = speechSynthesis.getVoices();
-  
+
   if(mood === 'girlfriend' || mood === 'friendly'){
     const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Karen') || v.gender === 'female');
     if(femaleVoice) utterance.voice = femaleVoice;
@@ -1020,7 +1019,7 @@ function speakText(text, mood){
   utterance.onstart = () => speaking = true;
   utterance.onend = () => speaking = false;
   utterance.onerror = () => speaking = false;
-  
+
   speechSynthesis.speak(utterance);
 }
 
@@ -1028,7 +1027,13 @@ function stopVoice(){
   speechSynthesis.cancel();
   speaking = false;
 }
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+function showToast(msg){ 
+  const t = document.getElementById('toast'); 
+  t.textContent = msg; 
+  t.classList.add('show'); 
+  setTimeout(() => t.classList.remove('show'), 2500); 
+}
 </script>
 </body>
 </html>
