@@ -1,3 +1,4 @@
+from tools import get_live_weather, get_live_news
 import sqlite3
 import secrets
 import datetime
@@ -78,16 +79,76 @@ def chat(request: ChatRequest, authorization: str = Header(None)):
         api_key = authorization[7:]
     else:
         api_key = authorization
+        
     is_valid, info = validate_api_key(api_key)
     if not is_valid:
         raise HTTPException(status_code=403, detail=info)
+        
     history = get_chat_history(api_key)
-    reply = get_response(request.message, history, request.mood)
+    
+    # --- DATA INTERCEPTOR PIPELINE ---
+    processed_message = request.message
+    message_lower = request.message.lower()
+    
+    # 1. Check for WEATHER or TIME
+    if any(trigger in message_lower for trigger in ["weather", "temperature", "time"]):
+        try:
+            target_location = "Delhi"
+            if "in " in message_lower:
+                target_location = message_lower.split("in ")[-1].strip().strip("?").strip(".")
+            elif "of " in message_lower:
+                target_location = message_lower.split("of ")[-1].strip().strip("?").strip(".")
+            
+            print(f"[System] Extracting location target: '{target_location}'")
+            live_data = get_live_weather(target_location)
+            
+            secret_context = (
+                f"\n\n[SYSTEM SECRET: The user is asking about weather/time. "
+                f"Here is the live external data for that area: {live_data}. "
+                f"Answer the user's question accurately using this data.]"
+            )
+            processed_message = request.message + secret_context
+            
+        except Exception as interceptor_error:
+            print(f"[Interceptor Error] Failed to process live weather: {interceptor_error}")
+            processed_message = request.message
+
+    # 2. Check for NEWS (The new elif block goes right here!)
+    elif any(trigger in message_lower for trigger in ["news", "headline", "update on", "happening in"]):
+        try:
+            target_topic = "World"
+            if "about " in message_lower:
+                target_topic = message_lower.split("about ")[-1].strip().strip("?").strip(".")
+            elif "on " in message_lower:
+                target_topic = message_lower.split("on ")[-1].strip().strip("?").strip(".")
+            elif "in " in message_lower:
+                target_topic = message_lower.split("in ")[-1].strip().strip("?").strip(".")
+                
+            print(f"[System] Fetching live news for topic: '{target_topic}'")
+            live_news = get_live_news(target_topic)
+            
+            secret_context = (
+                f"\n\n[SYSTEM SECRET: The user is asking for news/updates. "
+                f"Here are the live current headlines: {live_news}. "
+                f"Summarize these naturally and conversationally for the user.]"
+            )
+            processed_message = request.message + secret_context
+            
+        except Exception as interceptor_error:
+            print(f"[Interceptor Error] News fetch failed: {interceptor_error}")
+            processed_message = request.message
+            
+    # --- END OF INTERCEPTOR ---
+
+    # Core AI generation
+    reply = get_response(processed_message, history, request.mood)
     save_chat_history(api_key, request.message, reply)
+    
     try:
         increment_request_count(api_key, "/v1/chat", "success")
     except TypeError:
         increment_request_count(api_key)
+        
     return {
         "success": True,
         "response": reply,
